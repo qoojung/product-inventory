@@ -8,7 +8,7 @@ import (
 )
 
 func Register(rootRoute *gin.RouterGroup, db *gorm.DB) {
-	product := ioc.InitProductService(db)
+	product := ioc.InitProductApp(db)
 	userRouter := rootRoute.Group("/products")
 	{
 		userRouter.GET("/:id", product.GetProduct)

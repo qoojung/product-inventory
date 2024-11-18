@@ -32,7 +32,6 @@ func (p ProductRepositoryImpl) Save(product dao.Product) (dao.Product, error) {
 	return product, err
 }
 func (p ProductRepositoryImpl) UpdateById(id uint64, productMap map[string]interface{}) (int64, error) {
-	print(id)
 	result := p.db.Model(&dao.Product{}).Where("id = ?", id).Updates(productMap)
 	return result.RowsAffected, result.Error
 }

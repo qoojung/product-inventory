@@ -5,113 +5,66 @@ import (
 	"app/domain/mapper"
 	"app/repository"
 	"app/util"
-	"net/http"
-	"strconv"
+	"errors"
 
-	"github.com/gin-gonic/gin"
+	log "github.com/sirupsen/logrus"
 )
 
 type ProductService interface {
-	GetProduct(ctx *gin.Context)
-	GetAllProducts(ctx *gin.Context)
-	CreateProduct(ctx *gin.Context)
-	DeleteProduct(ctx *gin.Context)
-	UpdateProduct(ctx *gin.Context)
+	GetAllProducts() ([]dto.Product, error)
+	GetProduct(id uint64) (dto.Product, error)
+	CreateProduct(createObj dto.CreateProduct) (dto.Product, error)
+	DeleteProduct(id uint64) error
+	UpdateProduct(id uint64, updateObj dto.UpdateProduct) error
 }
 
 type ProductServiceImpl struct {
 	repo repository.ProductRepository
 }
 
-func (p ProductServiceImpl) GetAllProducts(ctx *gin.Context) {
+func (p ProductServiceImpl) GetAllProducts() ([]dto.Product, error) {
 	products, err := p.repo.FindAll()
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"message": "products not found",
-		})
-		return
+		return []dto.Product{}, err
 	}
-	resp := util.BuildSuccessResponse_(mapper.ToProductDTOs(products))
-	ctx.JSON(http.StatusOK, resp)
+	return mapper.ToProductDTOs(products), nil
+
 }
-func (p ProductServiceImpl) GetProduct(ctx *gin.Context) {
-	idStr := ctx.Param("id")
-	id, err := strconv.ParseUint(idStr, 10, 64)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"message": "id not found",
-		})
-		return
-	}
+func (p ProductServiceImpl) GetProduct(id uint64) (dto.Product, error) {
 	daoProduct, err := p.repo.FindById(id)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"message": "product not found",
-		})
-		return
+		return dto.Product{}, err
 	}
-	resp := util.BuildSuccessResponse_(mapper.ToProductDTO(daoProduct))
-	ctx.JSON(200, resp)
+	return mapper.ToProductDTO(daoProduct), nil
 }
-func (p ProductServiceImpl) CreateProduct(ctx *gin.Context) {
-	productReq := dto.CreateProduct{}
-	bindErr := ctx.ShouldBindJSON(&productReq)
-	if bindErr != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"message": bindErr.Error(),
-		})
-		return
-	}
-	_, err := p.repo.Save(mapper.CreateProductToProductDAO(productReq))
+func (p ProductServiceImpl) CreateProduct(createObj dto.CreateProduct) (dto.Product, error) {
+	productDAO, err := p.repo.Save(mapper.CreateProductToProductDAO(createObj))
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"message": "product not created",
-		})
-		return
+		return dto.Product{}, err
 	}
-	ctx.Status(http.StatusCreated)
+	return mapper.ToProductDTO(productDAO), nil
 }
-func (p ProductServiceImpl) DeleteProduct(ctx *gin.Context) {
-	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
-	if err != nil {
-		ctx.JSON(400, gin.H{
-			"message": "id not found",
-		})
-		return
-	}
+func (p ProductServiceImpl) DeleteProduct(id uint64) error {
 	row, err := p.repo.Delete(id)
-	if row == 0 || err != nil {
-		ctx.JSON(400, gin.H{
-			"message": "product not deleted",
-		})
-		return
+	if err != nil {
+		log.Error(err)
+		return err
 	}
-	ctx.JSON(200, util.BuildEmptySuccessResponse_())
+	if row == 0 {
+		return &util.ApiError{Status: util.NotFound, Err: errors.New("")}
+	}
+	return nil
 }
-func (p ProductServiceImpl) UpdateProduct(ctx *gin.Context) {
-	updateReq := dto.UpdateProduct{}
-	err := ctx.ShouldBindJSON(&updateReq)
+func (p ProductServiceImpl) UpdateProduct(id uint64, updateObj dto.UpdateProduct) error {
+	rows, err := p.repo.UpdateById(id, mapper.UpdateProductToMap(updateObj))
 	if err != nil {
-		ctx.JSON(400, gin.H{
-			"message": err.Error(),
-		})
-		return
+		log.Error(err)
+		return err
 	}
-	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
-	if err != nil {
-		ctx.JSON(400, gin.H{
-			"message": "id not found",
-		})
-		return
+	if rows == 0 {
+		return &util.ApiError{Status: util.NotFound, Err: errors.New("")}
 	}
-	rows, err := p.repo.UpdateById(id, mapper.UpdateProductToMap(updateReq))
-	if err != nil || rows == 0 {
-		ctx.JSON(400, gin.H{
-			"message": "product not updated",
-		})
-		return
-	}
-	ctx.JSON(200, util.BuildEmptySuccessResponse_())
+	return nil
 }
 func NewProductService(repo repository.ProductRepository) ProductService {
 	return &ProductServiceImpl{

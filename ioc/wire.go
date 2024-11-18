@@ -4,6 +4,7 @@
 package ioc
 
 import (
+	"app/controller"
 	"app/repository"
 	"app/service"
 
@@ -11,7 +12,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func InitProductService(db *gorm.DB) service.ProductService {
-	wire.Build(repository.NewProductRepository, service.NewProductService)
-	return service.ProductServiceImpl{}
+func InitProductApp(db *gorm.DB) controller.ProductController {
+	wire.Build(repository.NewProductRepository, service.NewProductService, controller.NewProductController)
+	return controller.ProductControllerImpl{}
 }

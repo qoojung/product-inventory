@@ -7,6 +7,7 @@
 package ioc
 
 import (
+	"app/controller"
 	"app/repository"
 	"app/service"
 	"gorm.io/gorm"
@@ -14,8 +15,9 @@ import (
 
 // Injectors from wire.go:
 
-func InitProductService(db *gorm.DB) service.ProductService {
+func InitProductApp(db *gorm.DB) controller.ProductController {
 	productRepository := repository.NewProductRepository(db)
 	productService := service.NewProductService(productRepository)
-	return productService
+	productController := controller.NewProductController(productService)
+	return productController
 }
