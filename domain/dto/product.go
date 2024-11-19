@@ -16,9 +16,12 @@ type CreateProduct struct {
 	UnitPrice   uint   `json:"unit_price" binding:"required"`
 }
 type UpdateProduct struct {
-	SKU         string `json:"sku" binding:"required"`
-	Name        string `json:"name" binding:"required"`
-	Description string `json:"description" binding:"required"`
-	Quantity    uint   `json:"quantity" binding:"required"`
-	UnitPrice   uint   `json:"unit_price" binding:"required"`
+	SKU         *string `json:"sku"`
+	Name        *string `json:"name"`
+	Description *string `json:"description"`
+	Quantity    *uint   `json:"quantity"`
+	UnitPrice   *uint   `json:"unit_price"`
+}
+type AdjustProductQuantity struct {
+	Value int `json:"value" binding:"required"`
 }

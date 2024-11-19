@@ -11,10 +11,11 @@ const (
 	Internal
 	NotFound
 	Argument
+	OperationInvalid
 )
 
 func (e ErrorCode) String() string {
-	return [...]string{"success", "internal", "not found", "argument"}[e]
+	return [...]string{"success", "internal", "not found", "argument", "operation invalid"}[e]
 }
 
 type ApiError struct {

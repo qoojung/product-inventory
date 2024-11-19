@@ -12,6 +12,7 @@ type ProductRepository interface {
 	Save(product dao.Product) (dao.Product, error)
 	UpdateById(id uint64, productMap map[string]interface{}) (int64, error)
 	Delete(id uint64) (int64, error)
+	IncrementQuantity(id uint64, quantity int) (int64, error)
 }
 type ProductRepositoryImpl struct {
 	db *gorm.DB
@@ -38,6 +39,11 @@ func (p ProductRepositoryImpl) UpdateById(id uint64, productMap map[string]inter
 
 func (p ProductRepositoryImpl) Delete(id uint64) (int64, error) {
 	result := p.db.Delete(&dao.Product{}, id)
+	return result.RowsAffected, result.Error
+}
+func (p ProductRepositoryImpl) IncrementQuantity(id uint64, quantity int) (int64, error) {
+	remains := -quantity
+	result := p.db.Model(&dao.Product{}).Where("id = ? and quantity >= ?", id, remains).Update("quantity", gorm.Expr("quantity + ?", quantity))
 	return result.RowsAffected, result.Error
 }
 func NewProductRepository(db *gorm.DB) ProductRepository {

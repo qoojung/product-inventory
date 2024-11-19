@@ -17,6 +17,7 @@ type ProductController interface {
 	CreateProduct(ctx *gin.Context)
 	DeleteProduct(ctx *gin.Context)
 	UpdateProduct(ctx *gin.Context)
+	AdjustProductQuantity(ctx *gin.Context)
 }
 
 type ProductControllerImpl struct {
@@ -98,6 +99,27 @@ func (p ProductControllerImpl) UpdateProduct(ctx *gin.Context) {
 
 		log.Error(err)
 
+		ctx.JSON(http.StatusBadRequest, util.BuildErrorResponseFromError(err))
+		return
+	}
+	ctx.JSON(http.StatusOK, util.BuildEmptySuccessResponse())
+}
+func (p ProductControllerImpl) AdjustProductQuantity(ctx *gin.Context) {
+	adjustReq := dto.AdjustProductQuantity{}
+	err := ctx.ShouldBindJSON(&adjustReq)
+	if err != nil {
+		log.Error(err)
+		ctx.JSON(http.StatusBadRequest, util.BuildErrorResponse(util.Argument))
+		return
+	}
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, util.BuildErrorResponse(util.Argument))
+		return
+	}
+	err = p.svc.IncrementProductQuantity(id, adjustReq.Value)
+	if err != nil {
+		log.Error(err)
 		ctx.JSON(http.StatusBadRequest, util.BuildErrorResponseFromError(err))
 		return
 	}

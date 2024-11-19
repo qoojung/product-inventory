@@ -85,6 +85,21 @@ func (mr *MockProductRepositoryMockRecorder) FindById(id any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindById", reflect.TypeOf((*MockProductRepository)(nil).FindById), id)
 }
 
+// IncrementQuantity mocks base method.
+func (m *MockProductRepository) IncrementQuantity(id uint64, quantity int) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IncrementQuantity", id, quantity)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// IncrementQuantity indicates an expected call of IncrementQuantity.
+func (mr *MockProductRepositoryMockRecorder) IncrementQuantity(id, quantity any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IncrementQuantity", reflect.TypeOf((*MockProductRepository)(nil).IncrementQuantity), id, quantity)
+}
+
 // Save mocks base method.
 func (m *MockProductRepository) Save(product dao.Product) (dao.Product, error) {
 	m.ctrl.T.Helper()

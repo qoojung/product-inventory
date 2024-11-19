@@ -17,6 +17,7 @@ type ProductService interface {
 	CreateProduct(createObj dto.CreateProduct) (dto.Product, error)
 	DeleteProduct(id uint64) error
 	UpdateProduct(id uint64, updateObj dto.UpdateProduct) error
+	IncrementProductQuantity(id uint64, quantity int) error
 }
 
 type ProductServiceImpl struct {
@@ -67,6 +68,17 @@ func (p ProductServiceImpl) UpdateProduct(id uint64, updateObj dto.UpdateProduct
 	}
 	if rows == 0 {
 		return &util.ApiError{Status: util.NotFound}
+	}
+	return nil
+}
+func (p ProductServiceImpl) IncrementProductQuantity(id uint64, quantity int) error {
+	rows, err := p.repo.IncrementQuantity(id, quantity)
+	if err != nil {
+		log.Error(err)
+		return err
+	}
+	if rows == 0 {
+		return &util.ApiError{Status: util.OperationInvalid}
 	}
 	return nil
 }

@@ -86,6 +86,11 @@ func TestCreateProductToProductDAO(t *testing.T) {
 }
 
 func TestUpdateProductToMap(t *testing.T) {
+	sku := "PROD"
+	name := "Car"
+	description := "car"
+	unitPrice := uint(10000)
+	quantity := uint(10)
 	type args struct {
 		productDto dto.UpdateProduct
 	}
@@ -95,20 +100,87 @@ func TestUpdateProductToMap(t *testing.T) {
 		want map[string]interface{}
 	}{
 		{
+			name: "Full",
 			args: args{
 				productDto: dto.UpdateProduct{
-					SKU:         "PROD",
-					Name:        "Car",
-					Description: "car",
-					Quantity:    10,
-					UnitPrice:   1000,
+					SKU:         &sku,
+					Name:        &name,
+					Description: &description,
+					Quantity:    &quantity,
+					UnitPrice:   &unitPrice,
 				}},
 			want: map[string]interface{}{
-				"sku":         "PROD",
-				"name":        "Car",
-				"description": "car",
-				"quantity":    uint(10),
-				"unit_price":  uint(1000),
+				"sku":         sku,
+				"name":        name,
+				"description": description,
+				"quantity":    quantity,
+				"unit_price":  unitPrice,
+			},
+		},
+		{
+			name: "Partial",
+			args: args{
+				productDto: dto.UpdateProduct{
+					SKU: &sku,
+				}},
+			want: map[string]interface{}{
+				"sku": sku,
+			},
+		},
+		{
+			name: "Partial",
+			args: args{
+				productDto: dto.UpdateProduct{
+					Name: &name,
+				}},
+			want: map[string]interface{}{
+				"name": name,
+			},
+		},
+		{
+			name: "Partial",
+			args: args{
+				productDto: dto.UpdateProduct{
+					Description: &description,
+				}},
+			want: map[string]interface{}{
+				"description": description,
+			},
+		},
+		{
+			name: "Partial",
+			args: args{
+				productDto: dto.UpdateProduct{
+					Quantity: &quantity,
+				}},
+			want: map[string]interface{}{
+				"quantity": quantity,
+			},
+		},
+		{
+			name: "Partial",
+			args: args{
+				productDto: dto.UpdateProduct{
+					UnitPrice: &unitPrice,
+				}},
+			want: map[string]interface{}{
+				"unit_price": unitPrice,
+			},
+		},
+		{
+			name: "Partial",
+			args: args{
+				productDto: dto.UpdateProduct{
+					Name:        &name,
+					Description: &description,
+					Quantity:    &quantity,
+					UnitPrice:   &unitPrice,
+				}},
+			want: map[string]interface{}{
+				"name":        name,
+				"description": description,
+				"quantity":    quantity,
+				"unit_price":  unitPrice,
 			},
 		},
 	}

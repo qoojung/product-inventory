@@ -245,7 +245,9 @@ func TestProductServiceImpl_DeleteProduct(t *testing.T) {
 		})
 	}
 }
-
+func getPointer[T any](val T) *T {
+	return &val
+}
 func TestProductServiceImpl_UpdateProduct(t *testing.T) {
 	mockctl := gomock.NewController(t)
 	defer mockctl.Finish()
@@ -272,11 +274,11 @@ func TestProductServiceImpl_UpdateProduct(t *testing.T) {
 			},
 			arg: Argument{
 				update: dto.UpdateProduct{
-					SKU:         "PROD",
-					Name:        "mobile",
-					Description: "cutting-edge mobile",
-					Quantity:    1,
-					UnitPrice:   2000,
+					SKU:         getPointer("PROD"),
+					Name:        getPointer("mobile"),
+					Description: getPointer("cutting-edge mobile"),
+					Quantity:    getPointer(uint(1)),
+					UnitPrice:   getPointer(uint(2000)),
 				},
 				id: uint64(1),
 			},
@@ -294,11 +296,11 @@ func TestProductServiceImpl_UpdateProduct(t *testing.T) {
 			},
 			arg: Argument{
 				update: dto.UpdateProduct{
-					SKU:         "PROD",
-					Name:        "mobile",
-					Description: "cutting-edge mobile",
-					Quantity:    1,
-					UnitPrice:   2000,
+					SKU:         getPointer("PROD"),
+					Name:        getPointer("mobile"),
+					Description: getPointer("cutting-edge mobile"),
+					Quantity:    getPointer(uint(1)),
+					UnitPrice:   getPointer(uint(2000)),
 				},
 				id: uint64(1),
 			},
@@ -319,11 +321,11 @@ func TestProductServiceImpl_UpdateProduct(t *testing.T) {
 			},
 			arg: Argument{
 				update: dto.UpdateProduct{
-					SKU:         "PROD",
-					Name:        "mobile",
-					Description: "cutting-edge mobile",
-					Quantity:    1,
-					UnitPrice:   2000,
+					SKU:         getPointer("PROD"),
+					Name:        getPointer("mobile"),
+					Description: getPointer("cutting-edge mobile"),
+					Quantity:    getPointer(uint(1)),
+					UnitPrice:   getPointer(uint(2000)),
 				},
 				id: uint64(1),
 			},
@@ -338,6 +340,49 @@ func TestProductServiceImpl_UpdateProduct(t *testing.T) {
 				repo: mockRepo,
 			}
 			err := svc.UpdateProduct(tt.arg.id, tt.arg.update)
+			assert.Equal(t, tt.expectError, err)
+		})
+	}
+}
+
+func TestProductServiceImpl_IncrementProductQuantity(t *testing.T) {
+	mockctl := gomock.NewController(t)
+	defer mockctl.Finish()
+
+	tests := []struct {
+		name         string
+		functionCall func(mock *repository.MockProductRepository)
+		expectError  error
+	}{
+		{
+			name: "Update Success",
+			functionCall: func(mock *repository.MockProductRepository) {
+				mock.EXPECT().IncrementQuantity(uint64(1), 30).Return(int64(1), nil)
+			},
+		},
+		{
+			name: "Update Fail Out of stock",
+			functionCall: func(mock *repository.MockProductRepository) {
+				mock.EXPECT().IncrementQuantity(uint64(1), 30).Return(int64(0), nil)
+			},
+			expectError: &util.ApiError{Status: util.OperationInvalid},
+		},
+		{
+			name: "Update Fail DB Error",
+			functionCall: func(mock *repository.MockProductRepository) {
+				mock.EXPECT().IncrementQuantity(uint64(1), 30).Return(int64(0), gorm.ErrInvalidField)
+			},
+			expectError: gorm.ErrInvalidField,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockRepo := repository.NewMockProductRepository(mockctl)
+			tt.functionCall(mockRepo)
+			svc := ProductServiceImpl{
+				repo: mockRepo,
+			}
+			err := svc.IncrementProductQuantity(uint64(1), 30)
 			assert.Equal(t, tt.expectError, err)
 		})
 	}

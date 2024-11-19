@@ -26,13 +26,23 @@ func CreateProductToProductDAO(productDto dto.CreateProduct) dao.Product {
 	}
 }
 func UpdateProductToMap(productDto dto.UpdateProduct) map[string]interface{} {
-	return map[string]interface{}{
-		"sku":         productDto.SKU,
-		"name":        productDto.Name,
-		"description": productDto.Description,
-		"quantity":    productDto.Quantity,
-		"unit_price":  productDto.UnitPrice,
+	update := make(map[string]interface{})
+	if productDto.SKU != nil {
+		update["sku"] = *productDto.SKU
 	}
+	if productDto.Name != nil {
+		update["name"] = *productDto.Name
+	}
+	if productDto.Description != nil {
+		update["description"] = *productDto.Description
+	}
+	if productDto.Quantity != nil {
+		update["quantity"] = *productDto.Quantity
+	}
+	if productDto.UnitPrice != nil {
+		update["unit_price"] = *productDto.UnitPrice
+	}
+	return update
 }
 
 func ToProductDTO(productDao dao.Product) dto.Product {

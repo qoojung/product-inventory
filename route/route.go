@@ -14,7 +14,8 @@ func Register(rootRoute *gin.RouterGroup, db *gorm.DB) {
 		userRouter.GET("/:id", product.GetProduct)
 		userRouter.POST("/", product.CreateProduct)
 		userRouter.GET("/", product.GetAllProducts)
-		userRouter.PUT("/:id", product.UpdateProduct)
+		userRouter.PATCH("/:id", product.UpdateProduct)
 		userRouter.DELETE("/:id", product.DeleteProduct)
+		userRouter.POST("/:id/quantity/adjust", product.AdjustProductQuantity)
 	}
 }
