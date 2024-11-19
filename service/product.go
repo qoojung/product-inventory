@@ -8,6 +8,7 @@ import (
 	"errors"
 
 	log "github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 )
 
 type ProductService interface {
@@ -33,6 +34,9 @@ func (p ProductServiceImpl) GetAllProducts() ([]dto.Product, error) {
 func (p ProductServiceImpl) GetProduct(id uint64) (dto.Product, error) {
 	daoProduct, err := p.repo.FindById(id)
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return dto.Product{}, &util.ApiError{Status: util.NotFound}
+		}
 		return dto.Product{}, err
 	}
 	return mapper.ToProductDTO(daoProduct), nil
@@ -51,7 +55,7 @@ func (p ProductServiceImpl) DeleteProduct(id uint64) error {
 		return err
 	}
 	if row == 0 {
-		return &util.ApiError{Status: util.NotFound, Err: errors.New("")}
+		return &util.ApiError{Status: util.NotFound}
 	}
 	return nil
 }
@@ -62,7 +66,7 @@ func (p ProductServiceImpl) UpdateProduct(id uint64, updateObj dto.UpdateProduct
 		return err
 	}
 	if rows == 0 {
-		return &util.ApiError{Status: util.NotFound, Err: errors.New("")}
+		return &util.ApiError{Status: util.NotFound}
 	}
 	return nil
 }

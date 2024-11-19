@@ -4,12 +4,13 @@ import (
 	"app/domain/dao"
 	"app/domain/dto"
 	"app/repository"
-	"reflect"
+	"app/util"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
+	"gorm.io/gorm"
 )
 
 func TestProductServiceImpl_GetAllProducts(t *testing.T) {
@@ -69,142 +70,275 @@ func TestProductServiceImpl_GetAllProducts(t *testing.T) {
 }
 
 func TestProductServiceImpl_GetProduct(t *testing.T) {
-	type fields struct {
-		repo repository.ProductRepository
-	}
-	type args struct {
-		id uint64
-	}
+	mockctl := gomock.NewController(t)
+	defer mockctl.Finish()
+
 	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    dto.Product
-		wantErr bool
+		name         string
+		functionCall func(mock *repository.MockProductRepository)
+		want         dto.Product
+		arg          uint64
+		expectError  error
 	}{
-		// TODO: Add test cases.
+		{
+			name: "Get Product Happy Path",
+			functionCall: func(mock *repository.MockProductRepository) {
+				mock.EXPECT().FindById(uint64(1)).Return(dao.Product{
+					ID:          1,
+					SKU:         "PROD",
+					Name:        "chair",
+					Description: "stylish Chair",
+					Quantity:    3000,
+					UnitPrice:   2000,
+					CreatedAt:   time.Now(),
+					UpdatedAt:   time.Now(),
+				}, nil)
+			},
+			arg: uint64(1),
+			want: dto.Product{
+				ID:          1,
+				SKU:         "PROD",
+				Name:        "chair",
+				Description: "stylish Chair",
+				Quantity:    3000,
+				UnitPrice:   2000,
+			},
+		},
+		{
+			name: "Get Product Fail Path",
+			functionCall: func(mock *repository.MockProductRepository) {
+				mock.EXPECT().FindById(uint64(1)).Return(dao.Product{}, gorm.ErrRecordNotFound)
+			},
+			arg:         uint64(1),
+			want:        dto.Product{},
+			expectError: &util.ApiError{Status: util.NotFound},
+		},
+		{
+			name: "Get Product Fail Path: internal",
+			functionCall: func(mock *repository.MockProductRepository) {
+				mock.EXPECT().FindById(uint64(1)).Return(dao.Product{}, gorm.ErrInvalidDB)
+			},
+			arg:         uint64(1),
+			want:        dto.Product{},
+			expectError: gorm.ErrInvalidDB,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p := ProductServiceImpl{
-				repo: tt.fields.repo,
+			mockRepo := repository.NewMockProductRepository(mockctl)
+			tt.functionCall(mockRepo)
+			svc := ProductServiceImpl{
+				repo: mockRepo,
 			}
-			got, err := p.GetProduct(tt.args.id)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("ProductServiceImpl.GetProduct() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("ProductServiceImpl.GetProduct() = %v, want %v", got, tt.want)
-			}
+			got, err := svc.GetProduct(tt.arg)
+			assert.Equal(t, tt.want, got)
+			assert.Equal(t, tt.expectError, err)
 		})
 	}
 }
 
 func TestProductServiceImpl_CreateProduct(t *testing.T) {
-	type fields struct {
-		repo repository.ProductRepository
-	}
-	type args struct {
-		createObj dto.CreateProduct
-	}
+	mockctl := gomock.NewController(t)
+	defer mockctl.Finish()
+
 	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    dto.Product
-		wantErr bool
+		name         string
+		functionCall func(mock *repository.MockProductRepository)
+		want         dto.Product
+		arg          dto.CreateProduct
+		expectError  error
 	}{
-		// TODO: Add test cases.
+		{
+			name: "Create Product",
+			functionCall: func(mock *repository.MockProductRepository) {
+				mock.EXPECT().Save(dao.Product{
+					SKU:         "PROD",
+					Name:        "chair",
+					Description: "stylish Chair",
+					Quantity:    3000,
+					UnitPrice:   2000,
+				}).Return(dao.Product{
+					ID:          1,
+					SKU:         "PROD",
+					Name:        "chair",
+					Description: "stylish Chair",
+					Quantity:    3000,
+					UnitPrice:   2000,
+					CreatedAt:   time.Now(),
+					UpdatedAt:   time.Now(),
+				}, nil)
+			},
+			arg: dto.CreateProduct{
+				SKU:         "PROD",
+				Name:        "chair",
+				Description: "stylish Chair",
+				Quantity:    3000,
+				UnitPrice:   2000,
+			},
+			want: dto.Product{
+				ID:          1,
+				SKU:         "PROD",
+				Name:        "chair",
+				Description: "stylish Chair",
+				Quantity:    3000,
+				UnitPrice:   2000,
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p := ProductServiceImpl{
-				repo: tt.fields.repo,
+			mockRepo := repository.NewMockProductRepository(mockctl)
+			tt.functionCall(mockRepo)
+			svc := ProductServiceImpl{
+				repo: mockRepo,
 			}
-			got, err := p.CreateProduct(tt.args.createObj)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("ProductServiceImpl.CreateProduct() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("ProductServiceImpl.CreateProduct() = %v, want %v", got, tt.want)
-			}
+			got, err := svc.CreateProduct(tt.arg)
+			assert.Equal(t, tt.want, got)
+			assert.Equal(t, tt.expectError, err)
 		})
 	}
 }
 
 func TestProductServiceImpl_DeleteProduct(t *testing.T) {
-	type fields struct {
-		repo repository.ProductRepository
-	}
-	type args struct {
-		id uint64
-	}
+	mockctl := gomock.NewController(t)
+	defer mockctl.Finish()
+
 	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantErr bool
+		name         string
+		functionCall func(mock *repository.MockProductRepository)
+		arg          uint64
+		expectError  error
 	}{
-		// TODO: Add test cases.
+		{
+			name: "Delete Product Happy Path",
+			functionCall: func(mock *repository.MockProductRepository) {
+				mock.EXPECT().Delete(uint64(1)).Return(int64(1), nil)
+			},
+			arg: uint64(1),
+		},
+		{
+			name: "Delete Product Fail Path",
+			functionCall: func(mock *repository.MockProductRepository) {
+				mock.EXPECT().Delete(uint64(1)).Return(int64(0), nil)
+			},
+			arg:         uint64(1),
+			expectError: &util.ApiError{Status: util.NotFound},
+		},
+		{
+			name: "Delete Product Fail Path",
+			functionCall: func(mock *repository.MockProductRepository) {
+				mock.EXPECT().Delete(uint64(1)).Return(int64(0), gorm.ErrInvalidTransaction)
+			},
+			arg:         uint64(1),
+			expectError: gorm.ErrInvalidTransaction,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p := ProductServiceImpl{
-				repo: tt.fields.repo,
+			mockRepo := repository.NewMockProductRepository(mockctl)
+			tt.functionCall(mockRepo)
+			svc := ProductServiceImpl{
+				repo: mockRepo,
 			}
-			if err := p.DeleteProduct(tt.args.id); (err != nil) != tt.wantErr {
-				t.Errorf("ProductServiceImpl.DeleteProduct() error = %v, wantErr %v", err, tt.wantErr)
-			}
+			err := svc.DeleteProduct(uint64(1))
+			assert.Equal(t, tt.expectError, err)
 		})
 	}
 }
 
 func TestProductServiceImpl_UpdateProduct(t *testing.T) {
-	type fields struct {
-		repo repository.ProductRepository
-	}
-	type args struct {
-		id        uint64
-		updateObj dto.UpdateProduct
+	mockctl := gomock.NewController(t)
+	defer mockctl.Finish()
+	type Argument struct {
+		update dto.UpdateProduct
+		id     uint64
 	}
 	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantErr bool
+		name         string
+		functionCall func(mock *repository.MockProductRepository)
+		arg          Argument
+		expectError  error
 	}{
-		// TODO: Add test cases.
+		{
+			name: "Update Product Happy Path",
+			functionCall: func(mock *repository.MockProductRepository) {
+				mock.EXPECT().UpdateById(uint64(1), map[string]interface{}{
+					"sku":         "PROD",
+					"name":        "mobile",
+					"description": "cutting-edge mobile",
+					"quantity":    uint(1),
+					"unit_price":  uint(2000),
+				}).Return(int64(1), nil)
+			},
+			arg: Argument{
+				update: dto.UpdateProduct{
+					SKU:         "PROD",
+					Name:        "mobile",
+					Description: "cutting-edge mobile",
+					Quantity:    1,
+					UnitPrice:   2000,
+				},
+				id: uint64(1),
+			},
+		},
+		{
+			name: "Update Product Fail Path",
+			functionCall: func(mock *repository.MockProductRepository) {
+				mock.EXPECT().UpdateById(uint64(1), map[string]interface{}{
+					"sku":         "PROD",
+					"name":        "mobile",
+					"description": "cutting-edge mobile",
+					"quantity":    uint(1),
+					"unit_price":  uint(2000),
+				}).Return(int64(0), nil)
+			},
+			arg: Argument{
+				update: dto.UpdateProduct{
+					SKU:         "PROD",
+					Name:        "mobile",
+					Description: "cutting-edge mobile",
+					Quantity:    1,
+					UnitPrice:   2000,
+				},
+				id: uint64(1),
+			},
+			expectError: &util.ApiError{
+				Status: util.NotFound,
+			},
+		},
+		{
+			name: "Update Product Fail Path",
+			functionCall: func(mock *repository.MockProductRepository) {
+				mock.EXPECT().UpdateById(uint64(1), map[string]interface{}{
+					"sku":         "PROD",
+					"name":        "mobile",
+					"description": "cutting-edge mobile",
+					"quantity":    uint(1),
+					"unit_price":  uint(2000),
+				}).Return(int64(0), gorm.ErrInvalidValue)
+			},
+			arg: Argument{
+				update: dto.UpdateProduct{
+					SKU:         "PROD",
+					Name:        "mobile",
+					Description: "cutting-edge mobile",
+					Quantity:    1,
+					UnitPrice:   2000,
+				},
+				id: uint64(1),
+			},
+			expectError: gorm.ErrInvalidValue,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p := ProductServiceImpl{
-				repo: tt.fields.repo,
+			mockRepo := repository.NewMockProductRepository(mockctl)
+			tt.functionCall(mockRepo)
+			svc := ProductServiceImpl{
+				repo: mockRepo,
 			}
-			if err := p.UpdateProduct(tt.args.id, tt.args.updateObj); (err != nil) != tt.wantErr {
-				t.Errorf("ProductServiceImpl.UpdateProduct() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-func TestNewProductService(t *testing.T) {
-	type args struct {
-		repo repository.ProductRepository
-	}
-	tests := []struct {
-		name string
-		args args
-		want ProductService
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := NewProductService(tt.args.repo); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewProductService() = %v, want %v", got, tt.want)
-			}
+			err := svc.UpdateProduct(tt.arg.id, tt.arg.update)
+			assert.Equal(t, tt.expectError, err)
 		})
 	}
 }
