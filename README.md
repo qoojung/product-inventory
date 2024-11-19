@@ -1,5 +1,5 @@
 # Product Inventory
-
+![example workflow](https://github.com/qoojung/product-inventory/actions/workflows/go.yml/badge.svg)
 ## Prerequisites
 
 ### Required Software (Tested)
