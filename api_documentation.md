@@ -11,7 +11,7 @@ This document provides detailed information about the available API endpoints an
 - **Path**: /api/products
 - **Description**: Retrieves a list of all products
 - **Response**: List of Product objects wrapped in ApiResponse
-```json
+```jsonc
 {
     "data": [
         {
@@ -35,7 +35,7 @@ This document provides detailed information about the available API endpoints an
 - **Parameters**: 
   - `id` (path parameter) - Product ID
 - **Response**: Single Product object wrapped in ApiResponse
-```json
+```jsonc
 {
     "data": {
         "id": int,
@@ -55,13 +55,13 @@ This document provides detailed information about the available API endpoints an
 - **Path**: /api/products
 - **Description**: Creates a new product
 - **Request Body**:
-```json
+```jsonc
 {
-    "sku": string,
-    "name": string,
-    "description": string,
-    "quantity": int,
-    "unit_price": int
+    "sku": string,         // required
+    "name": string,        // required
+    "description": string, // required
+    "quantity": int,       // required
+    "unit_price": int      // required
 }
 ```
 - **Response**: Created Product object wrapped in ApiResponse
@@ -81,25 +81,46 @@ This document provides detailed information about the available API endpoints an
 ```
 
 #### Update Product
-- **Method**: PUT
+- **Method**: PATCH
 - **Path**: /api/products/:id
-- **Description**: Updates an existing product
+- **Description**: Updates an existing product. All fields are optional.
 - **Parameters**: 
   - `id` (path parameter) - Product ID
 - **Request Body**:
-```json
+```jsonc
 {
-    "sku": string,
-    "name": string,
-    "description": string,
-    "quantity": int,
-    "unit_price": int
+    "sku": string|null,
+    "name": string|null,
+    "description": string|null,
+    "quantity": int|null,
+    "unit_price": int|null
 }
 ```
 - **Response**: Updated Product object wrapped in ApiResponse
-```json
+```jsonc
 {
-    "data": null,
+    "data": {},
+    "message": string,
+    "error": string
+}
+```
+
+#### Adjust Product Quantity
+- **Method**: PATCH
+- **Path**: /api/products/:id/quantity
+- **Description**: Adjusts the quantity of an existing product (increase or decrease)
+- **Parameters**: 
+  - `id` (path parameter) - Product ID
+- **Request Body**:
+```jsonc
+{
+    "value": int
+}
+```
+- **Response**: Success message wrapped in ApiResponse
+```jsonc
+{
+    "data": {},
     "message": string,
     "error": string
 }
@@ -112,9 +133,9 @@ This document provides detailed information about the available API endpoints an
 - **Parameters**: 
   - `id` (path parameter) - Product ID
 - **Response**: Success message wrapped in ApiResponse
-```json
+```jsonc
 {
-    "data": null,
+    "data": {},
     "message": string,
     "error": string
 }
@@ -122,7 +143,7 @@ This document provides detailed information about the available API endpoints an
 
 ## Response Format
 All API endpoints return responses in the following format:
-```json
+```jsonc
 {
     "data": any,
     "message": string,
