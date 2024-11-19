@@ -68,16 +68,23 @@ The application uses environment variables for configuration. You can:
 
 ## API documentation
 - API documentation can be found in the `/api_documentation.md` file
+## Tables
+
+### Products Table
+
+| Column Name | Data Type | Description |
+|------------|-----------|-------------|
+| id | unsigned int | Primary key, auto-incrementing |
+| sku | varchar(64) | Stock Keeping Unit, unique identifier for product |
+| name | varchar(64) | Name of the product |
+| description | varchar(128) | Detailed description of the product |
+| quantity | unsigned int | Available quantity of the product |
+| created_at | timestamp with timezone| Timestamp when the record was created |
+| updated_at | timestamp with timezone | Timestamp when the record was last updated |
+
+#### Indexes
+- Primary Key on `id`
 
 ## Additional Information
 - The application will create necessary database tables automatically on first run
 - For development, you can use the provided Makefile commands (if available)
-
-## Troubleshooting
-- Ensure all required ports are available (5500 for API, 5432 for PostgreSQL)
-- Check Docker logs if containers fail to start:
-  ```bash
-  docker-compose logs
-  ```
-- Verify that the .env file contains all required variables
-- Ensure Docker daemon is running before using docker-compose commands
