@@ -72,9 +72,7 @@ func (p ProductControllerImpl) DeleteProduct(ctx *gin.Context) {
 	}
 	err = p.svc.DeleteProduct(id)
 	if err != nil {
-		if err != nil {
-			log.Error(err)
-		}
+		log.Error(err)
 		ctx.JSON(http.StatusBadRequest, util.BuildErrorResponseFromError(err))
 		return
 	}
