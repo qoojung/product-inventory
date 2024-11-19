@@ -25,4 +25,10 @@ jobs:
       run: go build -v ./...
 
     - name: Test
-      run: make test
+      run: make ci > TestResults.json
+  
+    - name: Upload Go test results
+      uses: actions/upload-artifact@v4
+      with:
+          name: Go-results
+          path: TestResults.json
