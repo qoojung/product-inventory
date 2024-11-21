@@ -74,11 +74,11 @@ The application uses environment variables for configuration. You can:
 
 | Column Name | Data Type | Description |
 |------------|-----------|-------------|
-| id | unsigned int | Primary key, auto-incrementing |
+| id | int8 | Primary key, auto-incrementing |
 | sku | varchar(64) | Stock Keeping Unit, unique identifier for product |
 | name | varchar(64) | Name of the product |
 | description | varchar(128) | Detailed description of the product |
-| quantity | unsigned int | Available quantity of the product |
+| quantity | int8 | Available quantity of the product |
 | created_at | timestamp with timezone| Timestamp when the record was created |
 | updated_at | timestamp with timezone | Timestamp when the record was last updated |
 
